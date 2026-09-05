@@ -83,7 +83,9 @@ export async function deleteSession(request) {
 export function requestIpHash(request) {
   const pepper = process.env.AUTH_PEPPER;
   if (!pepper) throw new Error('AUTH_PEPPER is not configured');
-  const trustedClientIp = request.headers.get('x-gamehub-client-ip');
+  const trustedClientIp = request.headers.get('x-gamehub-client-ip')
+    || request.headers.get('x-schulte-client-ip')
+    || request.headers.get('x-timesense-client-ip');
   const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
   const ip = trustedClientIp || forwarded || request.headers.get('x-real-ip') || 'unknown';
   return sha256(`${pepper}:${ip}`);

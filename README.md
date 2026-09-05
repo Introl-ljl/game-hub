@@ -64,10 +64,20 @@ HUB_BASE=http://127.0.0.1:4173 npm test   # 端到端冒烟测试
 | 组件 | 地址 | 说明 |
 | --- | --- | --- |
 | PostgreSQL | `gamehub-postgres` 容器（内网） | 不映射宿主机端口 |
-| API | `192.168.1.104:3050` | `gamehub-api` 容器，`/healthz` 健康检查 |
+| API | `192.168.1.104:3030` + `:3040` | `gamehub-api` 容器，**复用原两项目的端口**，已有隧道路由无需改动 |
 | 静态层 | `192.168.1.104:4173` | `gamehub-web` 容器（导航页 + 双游戏 + `/api` 反代） |
-| 公网 | `https://games.introl.me` | Cloudflare Tunnel → 4173，DNS CNAME 已建 |
-| Vercel | `game-hub-three-iota-96.vercel.app` | 项目 `game-hub`，`BACKEND_ORIGIN=https://games.introl.me` |
+| 公网主站 | `https://games.introl.me` | Vercel 项目 `game-hub`（DNS only CNAME → cname.vercel-dns.com） |
+| 旧域名兼容 | `schulte.introl.me` / `timetest.introl.me` | 隧道原路由不变，直接打在新 API 上 |
+
+### 旧域名/旧前端兼容（重要）
+
+原 schulte 与 timetest 的 Vercel 前端仍在运行，它们的函数以旧密钥头（`x-schulte-proxy-secret` / `x-timesense-proxy-secret`）调用**无命名空间的旧路径**（`/api/runs/*`、`/api/leaderboard`）。新后端做了三层兼容（见 `backend/server.mjs`）：
+
+1. 旧路径按隧道转发的 **Host 头**路由：`timetest.introl.me` → 秒感路由，其余 → 方格路由；
+2. `validProxySecret` 同时接受新旧三个密钥头（旧密钥通过 `SCHULTE_LEGACY_PROXY_SECRET` / `TIMETEST_LEGACY_PROXY_SECRET` 注入）；
+3. 客户端 IP 头兼容 `x-schulte-client-ip` / `x-timesense-client-ip`。
+
+旧前端的登录用户凭已迁移的会话 token 无缝保持登录，新成绩写入统一数据库。
 
 常用运维：
 
@@ -76,9 +86,11 @@ HUB_BASE=http://127.0.0.1:4173 npm test   # 端到端冒烟测试
 3. 局域网访问：`http://192.168.1.104:4173`（导航页 + 双游戏）。
 4. `PUBLIC_ORIGINS`（`.env.backend`）已含局域网 4173 与 `games.introl.me`，新增前端来源时需同步。
 
-> 注意：Cloudflare Tunnel 为云端托管配置（本地 `../cloudflared/config.yml` 的 ingress 不生效），`games.introl.me` 的 Public Hostname 需在 Zero Trust 控制台添加：`games.introl.me` → `HTTP://192.168.1.104:4173`。
+> Cloudflare Tunnel 为云端托管配置（Zero Trust 控制台管理），本次未新增任何隧道路由：新 API 直接复用 `schulte.introl.me`（:3030）与 `timetest.introl.me`（:3040）两条既有路由。
 
 ## 数据迁移（已完成：舒尔特数据已于 2026-09-05 直迁，秒感无历史数据）
+
+迁移后旧容器 `schulte-api` / `time-sense-api` / `schulte-postgres` 已停止（未删除，数据卷保留可回滚）。
 
 ### 每日方格（schulte-grid，原 PostgreSQL）
 

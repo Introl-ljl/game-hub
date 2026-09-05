@@ -15,6 +15,7 @@
 - 共享用户系统：`/api/users`（注册）、`/api/session`（GET/POST/DELETE）。
 - 玩法接口必须带游戏命名空间：`/api/seconds/*` 与 `/api/schulte/*`，两侧代码互不引用（`backend/seconds/`、`backend/schulte/`），共享逻辑放 `backend/lib/`。
 - 代理密钥 header：`x-gamehub-proxy-secret`；客户端 IP header：`x-gamehub-client-ip`。
+- 旧域名兼容层：生产 API 绑定原两项目端口 3030/3040，隧道旧路由（schulte/timetest.introl.me）直接命中新后端；`validProxySecret` 接受新旧三个密钥头，旧无命名空间路径按 Host 头路由（timetest → seconds，其余 → schulte）。改路由时勿破坏该兼容层。
 
 ## 常用命令
 
@@ -30,7 +31,7 @@
 - 两游戏 localStorage key 不同（`time-sense-v1` / `schulte-daily-v2`），同源共存无冲突，勿混用。
 - 每日方格 SW 缓存名 `schulte-daily-v27` 与 `index.html` 的 `?v=27` 需同步升版；改动秒感/方格静态资源时也相应升 `?v=`。
 - 榜单口径：秒感每日榜按总偏差 total_ms（含复战，可开关），自由榜按平均偏差 average_ms；方格每日/复战按 total_ms + 错误数。榜单 Top 20，基准线（today/overall fastest、median）动态计算，不持久化。
-- PostgreSQL 不映射宿主机端口；`PROXY_SECRET` 缺失时后端拒绝启动。
+- PostgreSQL 不映射宿主机端口；`PROXY_SECRET` 缺失时后端拒绝启动。公网：`games.introl.me`（Vercel，BACKEND_ORIGIN=https://schulte.introl.me）→ 隧道 → 3030。
 - 数据导入：`scripts/import-timesense.mjs` 读 `import/db.json`（原 timetest JSON 存储），保留原用户 UUID 与旧会话 token；同名同 PIN 合并、同名异 PIN 加「·秒感」后缀。方格数据用 pg_dump 直迁（表结构一致）。
 - 原两项目目录（`../timetest`、`../schulte-grid`）保留未动，待新项目上线验证后再下线。
 - 字体自托管：Rajdhani（500/600/700，latin 子集，来自 @fontsource/rajdhani）放在 `public/fonts/`，三个页面统一引用 `/fonts/fonts.css`。不得改回 fonts.googleapis.com——大陆网络不稳定，加载失败会让整站回退系统字体、布局走样。方格 SW（v28）已把字体文件加入预缓存。

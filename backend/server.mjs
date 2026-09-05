@@ -24,6 +24,18 @@ const routes = new Map([
   ['/api/schulte/runs/start', schulteRunsStart],
   ['/api/schulte/runs/finish', schulteRunsFinish]
 ]);
+// 兼容旧前端（game.introl.me / time-sense-ten.vercel.app）的无命名空间路径：
+// 按隧道转发来的 Host 头路由到对应游戏（timetest.introl.me → 秒感，其余 → 方格）
+const legacyPaths = ['/api/runs/start', '/api/runs/finish', '/api/leaderboard'];
+function resolveLegacyRoute(pathname, host) {
+  if (!legacyPaths.includes(pathname)) return null;
+  const isTimetest = String(host || '').toLowerCase().includes('timetest');
+  return {
+    '/api/runs/start': isTimetest ? secondsRunsStart : schulteRunsStart,
+    '/api/runs/finish': isTimetest ? secondsRunsFinish : schulteRunsFinish,
+    '/api/leaderboard': isTimetest ? secondsLeaderboard : schulteLeaderboard
+  }[pathname];
+}
 
 if (!process.env.PROXY_SECRET) throw new Error('PROXY_SECRET is not configured');
 await migrate();
@@ -36,13 +48,15 @@ const server = createServer(async (incoming, outgoing) => {
       await getSql()`SELECT 1 AS healthy`;
       return send(outgoing, Response.json({ ok: true, service: 'game-hub-api' }, { headers: { 'Cache-Control': 'no-store' } }), startedAt, incoming.method, url.pathname);
     }
-    const route = routes.get(url.pathname);
+    // Vercel 项目 trailingSlash:true 会把 /api/x 补成 /api/x/ 再进函数，这里统一剥掉再匹配
+    const pathname = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, '') : url.pathname;
+    const route = routes.get(pathname) || resolveLegacyRoute(pathname, incoming.headers.host);
     const handler = route?.[incoming.method || ''];
     if (!handler) {
       const status = route ? 405 : 404;
-      return send(outgoing, Response.json({ error: status === 405 ? '请求方法不支持' : '接口不存在' }, { status }), startedAt, incoming.method, url.pathname);
+      return send(outgoing, Response.json({ error: status === 405 ? '请求方法不支持' : '接口不存在' }, { status }), startedAt, incoming.method, pathname);
     }
-    if (!validProxySecret(incoming.headers['x-gamehub-proxy-secret'])) {
+    if (!validProxySecret(incoming.headers)) {
       return send(outgoing, Response.json({ error: 'Unauthorized', code: 'INVALID_PROXY' }, { status: 401 }), startedAt, incoming.method, url.pathname);
     }
     const body = ['GET', 'HEAD'].includes(incoming.method || '') ? undefined : await readBody(incoming);
@@ -71,11 +85,19 @@ for (const signal of ['SIGTERM', 'SIGINT']) {
   });
 }
 
-function validProxySecret(value) {
-  if (typeof value !== 'string') return false;
-  const actual = Buffer.from(value);
-  const expected = Buffer.from(process.env.PROXY_SECRET);
-  return actual.length === expected.length && timingSafeEqual(actual, expected);
+function validProxySecret(headers) {
+  // 新枢纽密钥 + 两个旧项目的密钥（旧 Vercel Functions 仍在用各自的头与密钥）
+  const candidates = [
+    [headers['x-gamehub-proxy-secret'], process.env.PROXY_SECRET],
+    [headers['x-schulte-proxy-secret'], process.env.SCHULTE_LEGACY_PROXY_SECRET],
+    [headers['x-timesense-proxy-secret'], process.env.TIMETEST_LEGACY_PROXY_SECRET]
+  ];
+  return candidates.some(([value, expected]) => {
+    if (typeof value !== 'string' || typeof expected !== 'string' || !expected) return false;
+    const actual = Buffer.from(value);
+    const expectedBuffer = Buffer.from(expected);
+    return actual.length === expectedBuffer.length && timingSafeEqual(actual, expectedBuffer);
+  });
 }
 
 async function readBody(request) {
