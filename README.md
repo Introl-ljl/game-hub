@@ -57,15 +57,28 @@ HUB_BASE=http://127.0.0.1:4173 npm test   # 端到端冒烟测试
 
 打开 `http://localhost:4173`。
 
-## 生产部署（本机 192.168.1.104）
+## 生产部署（本机 192.168.1.104，已上线）
 
-1. **数据库 + API**：`docker compose up -d --build`，API 绑定 `192.168.1.104:3050`（PostgreSQL 不映射宿主机端口）。`.env.backend` 里的 `PUBLIC_ORIGINS` 改成实际对外域名。
-2. **静态层**：`PORT=4173 npm start`（读取 `.env.backend` 里的 `BACKEND_ORIGIN` / `PROXY_SECRET`）。
-3. **Cloudflare Tunnel**：把一个域名（例如 `games.introl.me`）指到 `192.168.1.104:4173`；旧的 `schulte.introl.me` / `timetest.introl.me` 建议改为 301 到新域名对应路径（或先并存一段时间）。
-4. **Vercel（可选，作为公网前端）**：项目 `vercel dev` / 关联仓库即可；Vercel 环境变量需要 `BACKEND_ORIGIN` 与 `BACKEND_PROXY_SECRET`（值与 `.env.backend` 中一致）。
-5. 修改后端后重建：`docker compose up -d --build api`，验证 `curl http://192.168.1.104:3050/healthz`。
+当前生产架构（复用舒尔特同款模式）：
 
-## 数据迁移
+| 组件 | 地址 | 说明 |
+| --- | --- | --- |
+| PostgreSQL | `gamehub-postgres` 容器（内网） | 不映射宿主机端口 |
+| API | `192.168.1.104:3050` | `gamehub-api` 容器，`/healthz` 健康检查 |
+| 静态层 | `192.168.1.104:4173` | `gamehub-web` 容器（导航页 + 双游戏 + `/api` 反代） |
+| 公网 | `https://games.introl.me` | Cloudflare Tunnel → 4173，DNS CNAME 已建 |
+| Vercel | `game-hub-three-iota-96.vercel.app` | 项目 `game-hub`，`BACKEND_ORIGIN=https://games.introl.me` |
+
+常用运维：
+
+1. 更新/重建：`docker compose up -d --build`（改后端后必须重建）。
+2. 健康检查：`curl http://192.168.1.104:3050/healthz`、`curl http://192.168.1.104:4173/api/health`。
+3. 局域网访问：`http://192.168.1.104:4173`（导航页 + 双游戏）。
+4. `PUBLIC_ORIGINS`（`.env.backend`）已含局域网 4173 与 `games.introl.me`，新增前端来源时需同步。
+
+> 注意：Cloudflare Tunnel 为云端托管配置（本地 `../cloudflared/config.yml` 的 ingress 不生效），`games.introl.me` 的 Public Hostname 需在 Zero Trust 控制台添加：`games.introl.me` → `HTTP://192.168.1.104:4173`。
+
+## 数据迁移（已完成：舒尔特数据已于 2026-09-05 直迁，秒感无历史数据）
 
 ### 每日方格（schulte-grid，原 PostgreSQL）
 
