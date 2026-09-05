@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3f0e8" />
+    <meta name="description" content="每天一组固定的时间直觉挑战：在心里默数 3 秒、5 秒、10 秒，看看你的时间感有多准。" />
+    <title>每日秒感 · Time Sense</title>
+    <link rel="stylesheet" href="/fonts/fonts.css?v=1" />
+    <link rel="stylesheet" href="styles.css?v=2" />
+  </head>
+  <body>
+    <div id="dateNotice" class="date-notice hidden" role="status">
+      <span>新的每日挑战已经上线。</span><button id="reloadBtn">刷新进入</button>
+    </div>
+
+    <main class="shell">
+      <header class="topbar">
+        <a class="wordmark" href="/" aria-label="返回导航页" title="返回导航页">
+          <strong>每日秒感</strong>
+          <span id="hudTimer">READY</span>
+          <small id="hudStars" aria-label="目标进度">☆ ☆ ☆</small>
+        </a>
+        <nav class="top-actions" aria-label="主要操作">
+          <button id="userButton" class="user-button" data-action="user" aria-label="用户账户" title="用户账户">
+            <span class="user-dot"></span><b id="userLabel">登录</b>
+          </button>
+          <button class="icon-button" data-action="guide" aria-label="玩法说明" title="玩法说明">?</button>
+          <button class="icon-button menu-button" data-action="settings" aria-label="设置" title="设置">☰</button>
+          <button class="icon-button trophy-button" data-action="leaderboard" aria-label="全局排行榜" title="全局排行榜">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v4a5 5 0 0 1-10 0V4ZM7 6H4v1a4 4 0 0 0 4 4M17 6h3v1a4 4 0 0 1-4 4" /></svg>
+          </button>
+        </nav>
+      </header>
+
+      <section id="homeView" class="view home-view">
+        <div class="hero-copy">
+          <p id="todayLabel" class="eyebrow">北京时间 · 加载中</p>
+          <h1>每日秒感</h1>
+          <p class="intro">在心中默数 3 秒、5 秒、10 秒，考验你的时间直觉。</p>
+        </div>
+
+        <div class="challenge-sections">
+          <article class="challenge-card daily-card timing-card">
+            <div class="card-topline">
+              <div>
+                <span class="overline">TODAY'S CHALLENGE</span>
+                <strong id="levelId">#--------</strong>
+              </div>
+              <span id="challengeState" class="status-tag">今日未开始</span>
+              <span id="dailyTier" class="status-tag tier-tag hidden"></span>
+            </div>
+            <div class="lap-board" id="lapBoard">
+              <div class="lap-total">
+                <span class="lap-label">AVG DEV</span>
+                <strong id="lapTotal" class="lap-time">--.---</strong>
+              </div>
+              <div class="lap-sectors" id="lapSectors" aria-label="三个目标的平均偏差">
+                <div class="sector"><span>3s</span><b>--.---</b></div>
+                <div class="sector"><span>5s</span><b>--.---</b></div>
+                <div class="sector"><span>10s</span><b>--.---</b></div>
+              </div>
+            </div>
+            <p class="card-description">每日挑战固定为 3 秒、5 秒、10 秒三个目标，每个目标 3 次按压机会；计时期间不显示任何数字，停止后立刻揭晓偏差。完成后可随时复战，复战成绩以 * 标注。</p>
+            <button id="startBtn" class="primary-button">开始今日挑战 <span>-></span></button>
+            <button id="dailyShareBtn" class="secondary-button share-button hidden">分享今日成绩</button>
+          </article>
+
+          <article class="challenge-card custom-card">
+            <div class="card-topline">
+              <div><span class="overline">FREE MODE</span></div>
+              <span class="status-tag custom-status">不限次数 · 自定义目标</span>
+            </div>
+            <h2>自由模式</h2>
+            <p class="card-description">下面的选择仅用于自由模式，可反复游玩并记录最佳成绩，不影响每日挑战。</p>
+            <div class="picker-block">
+              <span class="picker-label">目标秒数（1-60）</span>
+              <div id="targetButtons" class="chip-row" role="group" aria-label="目标秒数快选">
+                <button type="button" class="chip-button active" data-target="3">3s</button>
+                <button type="button" class="chip-button" data-target="1">1s</button>
+                <button type="button" class="chip-button" data-target="2">2s</button>
+                <button type="button" class="chip-button" data-target="5">5s</button>
+                <button type="button" class="chip-button" data-target="10">10s</button>
+                <button type="button" class="chip-button" data-target="30">30s</button>
+              </div>
+              <input id="customTargetInput" class="picker-input" type="number" min="1" max="60" step="1" value="3" inputmode="numeric" aria-label="自定义目标秒数" />
+            </div>
+            <div class="picker-block">
+              <span class="picker-label">按压次数</span>
+              <div id="roundsButtons" class="chip-row" role="group" aria-label="按压次数选择">
+                <button type="button" class="chip-button" data-rounds="1">1 次</button>
+                <button type="button" class="chip-button active" data-rounds="3">3 次</button>
+                <button type="button" class="chip-button" data-rounds="5">5 次</button>
+                <button type="button" class="chip-button" data-rounds="10">10 次</button>
+              </div>
+            </div>
+            <button id="customBtn" class="secondary-button">开始自定义 · 3s × 3次 <span>→</span></button>
+          </article>
+        </div>
+        <p id="loadMessage" class="inline-message" role="status"></p>
+
+        <div class="home-stats">
+          <button class="stat-card" data-action="history">
+            <span>连续挑战</span><strong><b id="streakValue">0</b> 天</strong><small id="streakHint">完成今日挑战开始记录</small>
+          </button>
+          <button class="stat-card" data-action="leaderboard">
+            <span>最近成绩</span><strong id="lastScore">—</strong><small>仅保存在当前浏览器</small>
+          </button>
+        </div>
+        <p class="timezone-note">每日挑战将在北京时间 00:00 更新</p>
+      </section>
+
+      <section id="gameView" class="view game-view hidden" aria-live="polite">
+        <div class="game-meta">
+          <button class="text-button danger-text" id="abandonBtn">放弃挑战</button>
+          <div class="stage-dots" id="stageDots" aria-label="目标进度"></div>
+          <span id="gameModeBadge" class="mode-badge">今日挑战</span>
+        </div>
+
+        <div class="game-heading">
+          <div><p id="stageLabel" class="eyebrow">第 1 / 3 目标</p><h2 id="gridSizeLabel">目标 3.00s</h2></div>
+        </div>
+        <div class="progress-line"><span id="progressBar"></span></div>
+        <div class="target-row"><span id="roundLabel">第 1 / 3 次</span><button class="text-button reset-button hidden" id="resetBtn">↻ 重置游戏</button><span id="bestLabel">最佳 —</span></div>
+        <div id="gameBoard" class="game-board ready">
+          <div id="timingPad" class="timing-pad">
+            <button id="timingButton" class="timing-button" aria-label="计时按钮"></button>
+          </div>
+          <div id="gameStartPanel" class="game-start-panel">
+            <button id="gameStartBtn" class="game-start-button">开始挑战</button>
+          </div>
+        </div>
+        <p class="game-help" id="gameHelp">按下按钮开始计时，心中默数，再次按下停止</p>
+      </section>
+
+      <section id="resultView" class="view result-view hidden">
+        <p id="resultEyebrow" class="eyebrow">DAILY COMPLETE</p>
+        <h1 id="resultTitle">今日挑战完成</h1>
+        <div class="result-total"><span>平均偏差</span><strong id="resultTotal">--.---</strong></div>
+        <div id="resultStages" class="result-stages"></div>
+        <div class="result-summary">
+          <div><span>最佳一轮</span><strong id="resultBest">—</strong></div>
+          <div><span id="resultStreakLabel">连续挑战</span><strong id="resultStreak">0 天</strong></div>
+          <div><span id="resultCompareLabel">近期对比</span><strong id="resultCompare">首次记录</strong></div>
+        </div>
+        <p id="resultNote" class="result-note"></p>
+        <div class="confetti" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="result-actions">
+          <button id="shareBtn" class="primary-button">复制分享成绩</button>
+          <button id="replayBtn" class="secondary-button">返回首页</button>
+          <button id="restartBtn" class="primary-button danger-fill">再来一次</button>
+        </div>
+      </section>
+
+      <section id="leaderboardView" class="view leaderboard-view hidden" aria-live="polite">
+        <div class="lb-header">
+          <button class="icon-button lb-back" data-action="home" aria-label="返回首页" title="返回首页">←</button>
+          <div class="lb-header-text">
+            <p class="eyebrow">GLOBAL LEADERBOARD</p>
+            <h2>全局排行榜</h2>
+          </div>
+        </div>
+        <div class="lb-toolbar">
+          <div id="leaderboardModes" class="leaderboard-controls" role="group" aria-label="排行榜模式">
+            <button class="active" data-board-mode="daily">每日挑战</button>
+            <button data-board-mode="custom">自由模式</button>
+          </div>
+          <div class="leaderboard-filters">
+            <select id="leaderboardTarget" aria-label="目标秒数">
+              <option value="1">1s</option><option value="2">2s</option><option value="3" selected>3s</option><option value="4">4s</option><option value="5">5s</option><option value="10">10s</option><option value="15">15s</option><option value="30">30s</option><option value="60">60s</option>
+            </select>
+            <select id="leaderboardTimeframe" aria-label="排行榜时间范围">
+              <option value="today">今日最准</option><option value="all">整体最准</option>
+            </select>
+          </div>
+          <label class="lb-toggle hidden" id="lbReplayToggle" title="在每日榜中显示复战成绩">
+            <input type="checkbox" id="lbShowReplay" checked /><span>显示复战</span>
+          </label>
+        </div>
+        <div id="lbBenchmark" class="lb-benchmark"></div>
+        <div id="leaderboardList" class="leaderboard-list"><div class="empty-state">正在加载排行榜…</div></div>
+        <p class="privacy-hint">所有排行榜保留每一次完整成绩，同一用户可以重复出现；榜单严格只展示 Top 20。每日榜中带 * 的成绩为复战成绩。</p>
+      </section>
+    </main>
+
+    <div id="stageModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card stage-complete" role="dialog" aria-modal="true" aria-labelledby="stageCompleteTitle">
+        <span class="completion-mark">✓</span><p class="eyebrow">TARGET COMPLETE</p>
+        <h2 id="stageCompleteTitle">3s 完成</h2>
+        <div class="stage-result"><span>平均偏差 <b id="stageAvg">--</b></span><span>最佳一轮 <b id="stageBest">--</b></span></div>
+        <div id="stageRounds" class="stage-rounds"></div>
+        <p id="nextStageLabel">下一目标：5.00s</p>
+        <button id="continueBtn" class="primary-button">继续 <span>→</span></button>
+        <small>3 秒后自动继续</small>
+      </div>
+    </div>
+
+    <div id="guideModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="guideModal"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+        <button class="modal-close" data-close="guideModal" aria-label="关闭">×</button>
+        <p class="eyebrow">HOW TO PLAY</p><h2 id="guideTitle">玩法很简单</h2>
+        <ol class="guide-list">
+          <li><b>01</b><span><strong>按下按钮开始计时</strong><small>页面会告诉你目标秒数，比如 3s；按下后不会显示任何数字。</small></span></li>
+          <li><b>02</b><span><strong>凭感觉再次按下停止</strong><small>在你认为到达目标秒数的瞬间再次按下，立刻看到实际用时与偏差。</small></span></li>
+          <li><b>03</b><span><strong>每个目标三次机会</strong><small>每日挑战固定 3s、5s、10s 三个目标，每个目标 3 次按压，平均偏差越小越准。</small></span></li>
+        </ol>
+        <div class="theme-slider-card">
+          <div><strong>选择界面主题色</strong><small id="guideThemeName">海洋蓝</small></div>
+          <input id="guideGridTheme" class="theme-slider" type="range" min="0" max="5" step="1" value="0" aria-label="界面主题色" />
+          <div class="theme-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <button id="guideStartBtn" class="primary-button">开始挑战</button>
+      </div>
+    </div>
+
+    <div id="historyModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="historyModal"></div>
+      <div class="modal-card wide-modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+        <button class="modal-close" data-close="historyModal" aria-label="关闭">×</button>
+        <p class="eyebrow">LOCAL HISTORY</p><h2 id="historyTitle">最近 30 天</h2>
+        <div id="historyList" class="history-list"></div>
+        <p class="privacy-hint">本地历史保存在当前浏览器；登录后每日、复战与自由模式成绩会同步到当前用户的全局排行榜，未登录时仅保存在本地。</p>
+      </div>
+    </div>
+
+    <div id="userModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="userModal"></div>
+      <div class="modal-card user-modal" role="dialog" aria-modal="true" aria-labelledby="userTitle">
+        <button id="userModalClose" class="modal-close" data-close="userModal" aria-label="关闭">×</button>
+        <p class="eyebrow">USER LOGIN</p><h2 id="userTitle">登录每日秒感</h2>
+        <div id="signedInPanel" class="signed-in-panel hidden">
+          <span>当前用户</span><strong id="signedInUsername">—</strong>
+          <button id="logoutBtn" class="secondary-button">退出登录</button>
+        </div>
+        <div id="userForms">
+          <div id="loginPanel">
+            <form id="loginForm" class="user-form">
+              <label><span>用户名</span><input id="loginUsername" type="text" minlength="2" maxlength="20" autocomplete="username" placeholder="输入用户名" required /></label>
+              <label><span>四位 PIN</span><input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required /></label>
+              <button class="primary-button" type="submit">登录</button>
+            </form>
+            <button type="button" id="toRegisterBtn" class="form-switch">还没有用户？<b>注册</b></button>
+          </div>
+          <div id="registerPanel" class="hidden">
+            <form id="registerForm" class="user-form">
+              <label><span>注册用户名</span><input id="registerUsername" type="text" minlength="2" maxlength="20" autocomplete="username" placeholder="中文、字母、数字、_ 或 -" required /></label>
+              <label><span>设置四位 PIN</span><input id="registerPin" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required /></label>
+              <button class="secondary-button" type="submit">注册并登录</button>
+            </form>
+            <button type="button" id="toLoginBtn" class="form-switch">已有账号？<b>登录</b></button>
+          </div>
+        </div>
+        <p id="userMessage" class="inline-message" role="status"></p>
+        <p class="privacy-hint">不登录也可游玩：成绩仅保存在当前设备的本地记录，不计入排行榜。登录后成绩计入排行榜，用户名显示在榜单中，PIN 请勿复用银行卡或其他重要密码。</p>
+      </div>
+    </div>
+
+    <div id="settingsModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="settingsModal"></div>
+      <div class="modal-card wide-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+        <button class="modal-close" data-close="settingsModal" aria-label="关闭">×</button>
+        <p class="eyebrow">PREFERENCES</p><h2 id="settingsTitle">设置</h2>
+        <div class="settings-list">
+          <label><span><strong>深色模式</strong><small>使用深色页面外观</small></span><input id="darkSetting" type="checkbox" /></label>
+          <label><span><strong>高对比度</strong><small>强化文字与边界</small></span><input id="contrastSetting" type="checkbox" /></label>
+          <label><span><strong>减少动画</strong><small>关闭非必要过渡效果</small></span><input id="motionSetting" type="checkbox" /></label>
+          <label><span><strong>音效</strong><small>开始、停止与完成提示音</small></span><input id="soundSetting" type="checkbox" /></label>
+          <label><span><strong>震动反馈</strong><small>在支持的移动设备上轻触反馈</small></span><input id="vibrationSetting" type="checkbox" /></label>
+          <div class="theme-setting-row">
+            <span><strong>界面主题色</strong><small>页面与计时按钮使用统一颜色</small></span>
+            <div class="theme-slider-wrap">
+              <b id="settingsThemeName">海洋蓝</b>
+              <input id="gridThemeSetting" class="theme-slider" type="range" min="0" max="5" step="1" value="0" aria-label="界面主题色" />
+              <div class="theme-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button id="showGuideBtn" class="secondary-button">重新查看玩法</button>
+          <button id="exportBtn" class="secondary-button">导出本地记录</button>
+          <button id="clearBtn" class="secondary-button danger-button">清除本地记录</button>
+        </div>
+        <p class="privacy-hint"><strong>隐私说明</strong><br />清除操作只删除当前浏览器中的本地历史和偏好，不会删除用户或已经提交的排行榜成绩。</p>
+      </div>
+    </div>
+
+    <div id="confirmModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="confirmModal"></div>
+      <div class="modal-card compact-modal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <h2 id="confirmTitle">放弃当前挑战？</h2><p id="confirmText">未完成的进度将被清空。</p>
+        <div class="confirm-actions"><button id="confirmCancel" class="secondary-button">取消</button><button id="confirmAccept" class="primary-button danger-fill">确认放弃</button></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script src="theme.js?v=1"></script>
+    <script src="api.js?v=1"></script>
+    <script src="app.js?v=1"></script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+name: Trigger daily Vercel deployment
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions uses UTC. 16:05 UTC is 00:05 in Asia/Shanghai.
+    - cron: '5 16 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-vercel-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel Deploy Hook
+        env:
+          VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$VERCEL_DEPLOY_HOOK_URL" ]; then
+            echo "Missing repository secret: VERCEL_DEPLOY_HOOK_URL"
+            exit 1
+          fi
+          curl --fail-with-body --silent --show-error --retry 3 \
+            --request POST "$VERCEL_DEPLOY_HOOK_URL"

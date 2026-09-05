@@ -1,0 +1,19 @@
+{
+  "name": "game-hub",
+  "version": "1.0.0",
+  "description": "每日游戏中心：每日秒感 + 每日方格，统一用户系统",
+  "main": "backend/server.mjs",
+  "private": true,
+  "scripts": {
+    "generate": "node scripts/generate-levels.js",
+    "build": "npm run generate",
+    "db:migrate": "node scripts/migrate.mjs",
+    "import:timesense": "node scripts/import-timesense.mjs",
+    "backend:start": "node backend/server.mjs",
+    "test": "node scripts/test-hub.mjs",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "postgres": "^3.4.9"
+  }
+}

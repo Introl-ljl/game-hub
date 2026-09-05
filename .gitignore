@@ -1,0 +1,9 @@
+node_modules/
+data/
+import/
+.env
+.env.backend
+.env.local
+.vercel
+.omc/
+.env*

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#fbf8f1" />
+    <meta name="description" content="每日小游戏中心：每日秒感与每日方格，一套账号畅玩全部每日挑战。" />
+    <title>每日游戏 · Game Hub</title>
+    <link rel="stylesheet" href="/fonts/fonts.css?v=1" />
+    <link rel="stylesheet" href="hub.css?v=3" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="wordmark" href="/" aria-label="每日游戏首页">
+          <strong>每日游戏</strong>
+          <span id="hubClock">--:--:--</span>
+        </a>
+        <nav class="top-actions" aria-label="主要操作">
+          <button id="userButton" class="user-button" aria-label="用户账户" title="用户账户">
+            <span class="user-dot"></span><b id="userLabel">登录</b>
+          </button>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <p id="todayLabel" class="eyebrow">北京时间 · 加载中</p>
+        <h1>今天，玩点什么？</h1>
+        <p class="intro">两个每日挑战小游戏，一套账号通用。完成今日挑战，和朋友们比比谁更准、更快。</p>
+      </section>
+
+      <section class="game-grid" aria-label="游戏列表">
+        <a class="game-card" href="seconds/" id="cardSeconds">
+          <div class="card-visual visual-seconds" aria-hidden="true">
+            <div class="timing-preview">
+              <span class="timing-ring"></span>
+              <span class="timing-pad" id="previewPad"><b>3s</b></span>
+              <span class="timing-echo"></span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-topline">
+              <span class="overline">TIME SENSE</span>
+              <span class="status-tag" id="secondsState">加载中</span>
+            </div>
+            <h2>每日秒感</h2>
+            <p class="card-description">在心中默数 3 秒、5 秒、10 秒，考验你的时间直觉。每日挑战固定三目标，也可自由设置目标练习。</p>
+            <div class="tag-row">
+              <span class="mode-tag">每日挑战</span>
+              <span class="mode-tag">复战</span>
+              <span class="mode-tag">自由模式</span>
+            </div>
+            <div class="card-foot">
+              <span class="stat"><small>今日参与</small><b id="secondsPlayers">—</b></span>
+              <span class="enter">进入游戏 <i>→</i></span>
+            </div>
+          </div>
+        </a>
+
+        <a class="game-card" href="schulte/" id="cardSchulte">
+          <div class="card-visual visual-schulte" aria-hidden="true">
+            <div class="grid-preview" id="previewGrid"></div>
+          </div>
+          <div class="card-body">
+            <div class="card-topline">
+              <span class="overline">SCHULTE GRID</span>
+              <span class="status-tag" id="schulteState">加载中</span>
+            </div>
+            <h2>每日方格</h2>
+            <p class="card-description">从 1 开始依次点击所有数字，完成 3×3、4×4、5×5 与 1-50 四关挑战。每日关卡全网相同，拼的就是手速。</p>
+            <div class="tag-row">
+              <span class="mode-tag">每日四关</span>
+              <span class="mode-tag">复战</span>
+              <span class="mode-tag">无限模式</span>
+            </div>
+            <div class="card-foot">
+              <span class="stat"><small>今日参与</small><b id="schultePlayers">—</b></span>
+              <span class="enter">进入游戏 <i>→</i></span>
+            </div>
+          </div>
+        </a>
+      </section>
+
+      <p class="timezone-note">每日挑战将在北京时间 00:00 更新 · 一个账号可在两个游戏中通用登录</p>
+    </main>
+
+    <div id="userModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-backdrop" data-close="userModal"></div>
+      <div class="modal-card user-modal" role="dialog" aria-modal="true" aria-labelledby="userTitle">
+        <button id="userModalClose" class="modal-close" data-close="userModal" aria-label="关闭">×</button>
+        <p class="eyebrow">USER LOGIN</p><h2 id="userTitle">登录每日游戏</h2>
+        <div id="signedInPanel" class="signed-in-panel hidden">
+          <span>当前用户</span><strong id="signedInUsername">—</strong>
+          <p class="privacy-hint">该账号在「每日秒感」和「每日方格」中通用，进入游戏即可直接上榜。</p>
+          <button id="logoutBtn" class="secondary-button">退出登录</button>
+        </div>
+        <div id="userForms">
+          <div id="loginPanel">
+            <form id="loginForm" class="user-form">
+              <label><span>用户名</span><input id="loginUsername" type="text" minlength="2" maxlength="20" autocomplete="username" placeholder="输入用户名" required /></label>
+              <label><span>四位 PIN</span><input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required /></label>
+              <button class="primary-button" type="submit">登录</button>
+            </form>
+            <button type="button" id="toRegisterBtn" class="form-switch">还没有用户？<b>注册</b></button>
+          </div>
+          <div id="registerPanel" class="hidden">
+            <form id="registerForm" class="user-form">
+              <label><span>注册用户名</span><input id="registerUsername" type="text" minlength="2" maxlength="20" autocomplete="username" placeholder="中文、字母、数字、_ 或 -" required /></label>
+              <label><span>设置四位 PIN</span><input id="registerPin" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required /></label>
+              <button class="secondary-button" type="submit">注册并登录</button>
+            </form>
+            <button type="button" id="toLoginBtn" class="form-switch">已有账号？<b>登录</b></button>
+          </div>
+        </div>
+        <p id="userMessage" class="inline-message" role="status"></p>
+        <p class="privacy-hint">不登录也可以直接进入游戏游玩；登录后成绩计入全局排行榜，账号在两个游戏中通用。</p>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script src="theme.js?v=3"></script>
+    <script src="hub.js?v=3"></script>
+  </body>
+</html>
